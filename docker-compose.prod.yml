@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    container_name: fraud-detection-api
+    image: fraud-detection-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8899:8899"
+    env_file:
+      - .env
+    environment:
+      - TRAIN_BATCH_SIZE=4
+      - TRAIN_EPOCHS=3
+    volumes:
+      - ./logs:/app/logs
+      - ./models:/app/models
+    working_dir: /app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8899
+

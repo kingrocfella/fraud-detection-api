@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    container_name: fraud-detection-api
+    image: fraud-detection-api
+    restart: unless-stopped
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
+    environment:
+      - DATA_TRAIN_END=10
+    volumes:
+      - ./app:/app/app
+      - ./logs:/app/logs
+      - ./models:/app/models
+    working_dir: /app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
