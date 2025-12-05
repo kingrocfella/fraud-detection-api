@@ -2,13 +2,11 @@
 
 from typing import Any, Dict
 
-import torch
 from peft import LoraConfig, PeftModel, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import SFTConfig, SFTTrainer
 
 from app.config import (
-    LOW_CPU_MEM_USAGE,
     MODEL_NAME,
     TRAIN_BATCH_SIZE,
     TRAIN_EPOCHS,
@@ -17,7 +15,7 @@ from app.config import (
 from app.utils import generate_prompts_from_dataset
 
 
-def process_model_training_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]:
+def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]:
     """Synchronous implementation of model training job processing."""
     logger.info("Starting model training job")
 
