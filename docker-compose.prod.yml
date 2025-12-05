@@ -1,7 +1,7 @@
 x-common-env: &common-env
   TRAIN_BATCH_SIZE: "1"
   TRAIN_EPOCHS: "2"
-  MODEL_NAME: "Qwen2.5-1.5B-Instruct-GPTQ-4bit"
+  MODEL_NAME: "Qwen/Qwen1.5-1.8B-Chat"
   LOW_CPU_MEM_USAGE: "False"
   REDIS_HOST: "redis"
   REDIS_PORT: "6379"
