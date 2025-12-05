@@ -36,3 +36,42 @@ class FraudDetectionRequest(BaseModel):
         "North Central",
         "South South",
     ]
+
+
+# Job-related schemas
+class JobQueuedResponse(BaseModel):
+    """Response when a job is queued."""
+
+    message_id: str
+    status: Literal["queued"]
+    message: str
+
+
+class JobStatusPending(BaseModel):
+    """Job is still being processed."""
+
+    message_id: str
+    status: Literal["pending"]
+    message: str
+
+
+class JobStatusFailed(BaseModel):
+    """Job failed with error."""
+
+    message_id: str
+    status: Literal["failed", "unknown"]
+    error: str
+
+
+class FraudDetectionResult(BaseModel):
+    """Completed fraud detection result."""
+
+    response: str
+
+
+class ModelTrainingResult(BaseModel):
+    """Completed model training result."""
+
+    status: str
+    message: str
+

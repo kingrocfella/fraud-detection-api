@@ -1,4 +1,14 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: fraud-detection-redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
   app:
     build: .
     container_name: fraud-detection-api
@@ -10,9 +20,41 @@ services:
       - .env
     environment:
       - DATA_TRAIN_END=10
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
     volumes:
       - ./app:/app/app
       - ./logs:/app/logs
       - ./models:/app/models
+      - shared_files:/app/shared_files
     working_dir: /app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      - redis
+
+  worker:
+    build: .
+    container_name: fraud-detection-worker
+    image: fraud-detection-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DATA_TRAIN_END=10
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+    volumes:
+      - ./app:/app/app
+      - ./logs:/app/logs
+      - ./models:/app/models
+      - shared_files:/app/shared_files
+    working_dir: /app
+    command: dramatiq app.queues.job_queue
+    depends_on:
+      - redis
+
+volumes:
+  redis_data:
+  shared_files:

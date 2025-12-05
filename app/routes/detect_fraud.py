@@ -1,46 +1,36 @@
-from fastapi import APIRouter, HTTPException
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from fastapi import APIRouter, HTTPException, status
 
 from app.config import logger
-from app.schemas import DefaultResponse, FraudDetectionRequest
-from app.utils import generate_prompt
+from app.schemas import FraudDetectionRequest, JobQueuedResponse
+from app.queues import enqueue_fraud_detection_job
 
 router = APIRouter()
 
 
-@router.post("/detect-fraud", response_model=DefaultResponse)
-def detect_fraud(request: FraudDetectionRequest) -> DefaultResponse:
-    """Detect fraud"""
+@router.post("/detect-fraud", response_model=JobQueuedResponse, status_code=status.HTTP_202_ACCEPTED)
+def detect_fraud(request: FraudDetectionRequest) -> JobQueuedResponse:
+    """Queue a fraud detection job.
 
+    Returns a job ID that can be used to check the status via GET /job/{message_id}.
+    """
     try:
-        logger.info("Loading model...")
-        model = AutoModelForCausalLM.from_pretrained("/app/models/merged")
-        logger.info("Model loaded successfully")
-        tokenizer = AutoTokenizer.from_pretrained("/app/models/merged")
-        logger.info("Tokenizer loaded successfully")
+        logger.info("Queueing fraud detection job")
 
-        # Generate prompt from request
-        prompt_data = generate_prompt(request)
-        prompt = prompt_data["instruction"]
-        logger.info("Prompt generated successfully")
+        # Enqueue the job
+        job_data = {"request": request.model_dump()}
+        job_id = enqueue_fraud_detection_job(job_data)
 
-        # Tokenize inputs
-        logger.info("Tokenizing inputs...")
-        inputs = tokenizer(prompt, return_tensors="pt")
-        logger.info("Inputs tokenized successfully")
+        logger.info("Fraud detection job enqueued with message ID: %s", job_id)
 
-        # Generate output
-        logger.info("Generating output...")
-        outputs = model.generate(**inputs, max_new_tokens=100)
-        logger.info("Model generated output successfully")
-
-        # Decode response
-        logger.info("Decoding response...")
-        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        logger.info("Response decoded successfully")
-
-        return DefaultResponse(response=response)
+        return JobQueuedResponse(
+            message_id=job_id,
+            status="queued",
+            message="Job has been queued for processing. Use GET /job/{message_id} to check status.",
+        )
 
     except Exception as e:
-        logger.error(f"Error trying to detect fraud: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to detect fraud: {str(e)}")
+        logger.error(f"Error trying to queue fraud detection job: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail=f"Failed to queue fraud detection job: {str(e)}"
+        )
+

@@ -1,4 +1,25 @@
+x-common-env: &common-env
+  - TRAIN_BATCH_SIZE=4
+  - TRAIN_EPOCHS=3
+  - MODEL_NAME=Qwen/Qwen3-1.7B
+  - LOW_CPU_MEM_USAGE=False
+  - REDIS_HOST=redis
+  - REDIS_PORT=6379
+  - REDIS_DB=0
+
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: fraud-detection-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     build: .
     container_name: fraud-detection-api
@@ -9,11 +30,37 @@ services:
     env_file:
       - .env
     environment:
-      - TRAIN_BATCH_SIZE=4
-      - TRAIN_EPOCHS=3
+      <<: *common-env
     volumes:
       - ./logs:/app/logs
       - ./models:/app/models
+      - shared_files:/app/shared_files
     working_dir: /app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8899
+    depends_on:
+      - redis:
+          condition: service_healthy
 
+  worker:
+    build: .
+    container_name: fraud-detection-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      <<: *common-env
+    volumes:
+      - ./logs:/app/logs
+      - ./models:/app/models
+      - shared_files:/app/shared_files
+    working_dir: /app
+    command: dramatiq app.queues.job_queue --processes 4 --threads 4
+    depends_on:
+      - redis:
+          condition: service_healthy
+
+volumes:
+  redis_data:
+  shared_files:
+  models:
+  logs:
