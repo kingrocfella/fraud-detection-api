@@ -1,11 +1,11 @@
 x-common-env: &common-env
-  - TRAIN_BATCH_SIZE=4
-  - TRAIN_EPOCHS=3
-  - MODEL_NAME=Qwen/Qwen3-1.7B
-  - LOW_CPU_MEM_USAGE=False
-  - REDIS_HOST=redis
-  - REDIS_PORT=6379
-  - REDIS_DB=0
+  TRAIN_BATCH_SIZE: "4"
+  TRAIN_EPOCHS: "3"
+  MODEL_NAME: "Qwen/Qwen3-1.7B"
+  LOW_CPU_MEM_USAGE: "False"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
 
 services:
   redis:
