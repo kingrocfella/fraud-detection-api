@@ -4,7 +4,7 @@ from fastapi.responses import FileResponse
 
 # Import queues module to register Dramatiq actors
 import app.queues.job_queue  # type: ignore  # noqa: F401
-from app.middlewares import LoggingMiddleware
+from app.middlewares import HideServerHeadersMiddleware, LoggingMiddleware
 from app.routes import (
     detect_fraud_router,
     finetune_model_router,
@@ -15,9 +15,11 @@ from app.config import logger
 
 app = FastAPI(title="Nigerian Transactions Fraud Detection API", version="1.0.0")
 
-# Add logging middleware
+# Add middlewares
 app.add_middleware(LoggingMiddleware)
+app.add_middleware(HideServerHeadersMiddleware)
 
+# Include routes
 app.include_router(detect_fraud_router)
 app.include_router(finetune_model_router)
 app.include_router(health_router)
