@@ -5,6 +5,7 @@ from .settings import (
     MODEL_NAME,
     TRAIN_BATCH_SIZE,
     TRAIN_EPOCHS,
+    TRAINING_SECURITY_KEY,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "DATA_TRAIN_END",
     "MODEL_NAME",
     "LOW_CPU_MEM_USAGE",
+    "TRAINING_SECURITY_KEY",
 ]
