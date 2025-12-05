@@ -1,16 +1,15 @@
-import json
-
 from datasets import Dataset, load_dataset
 
-from app.config import DATA_TRAIN_END
-from app.schemas import FraudDetectionRequest
+from app.config import DATA_TRAIN_END, logger
 
 
 def generate_prompts_from_dataset():
-    # Load the dataset
+    """Generate prompts from dataset."""
+    logger.info("Loading dataset...")
     ds = load_dataset(
         "electricsheepafrica/Nigerian-Financial-Transactions-and-Fraud-Detection-Dataset"
     )
+    logger.info("Dataset loaded successfully")
     train = ds["train"]
 
     # Truncate dataset in dev environment
@@ -20,9 +19,11 @@ def generate_prompts_from_dataset():
             new_train.append(train[i])
         train = new_train
 
+    logger.info("Truncating dataset to %d samples", len(train))
     # Generate prompt from datasets
+    logger.info("Generating prompts from dataset...")
     formatted_ds = Dataset.from_list([generate_prompt(record) for record in train])
-
+    logger.info("Prompts generated successfully")
     return formatted_ds
 
 
@@ -36,6 +37,7 @@ def generate_prompt(record):
     Returns:
         dict with 'instruction' and optionally 'output' keys
     """
+    logger.info("Generating prompt for record: %s", record)
 
     # Helper function to get value from either dict or object
     def get_value(obj, key, default=None):
@@ -73,7 +75,9 @@ def generate_prompt(record):
 
     # For training data (dict), include the output
     if isinstance(record, dict) and "is_fraud" in record:
+        logger.info("Prompt generated successfully for record: %s", prompt)
         return {"instruction": prompt, "output": "yes" if record["is_fraud"] else "no"}
 
     # For API requests, only return instruction
+    logger.info("Prompt generated successfully for record: %s", prompt)
     return {"instruction": prompt}
