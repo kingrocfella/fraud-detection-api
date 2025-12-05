@@ -2,14 +2,14 @@
 
 from fastapi import APIRouter, HTTPException, status
 
+from app.config import logger
+from app.queues import JOB_TYPE_FRAUD_DETECTION, JOB_TYPE_MODEL_TRAINING, get_job_status
 from app.schemas import (
     FraudDetectionResult,
     JobStatusFailed,
     JobStatusPending,
     ModelTrainingResult,
 )
-from app.queues import get_job_status, JOB_TYPE_FRAUD_DETECTION, JOB_TYPE_MODEL_TRAINING
-from app.config import logger
 
 router = APIRouter()
 

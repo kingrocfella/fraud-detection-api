@@ -74,4 +74,3 @@ class ModelTrainingResult(BaseModel):
 
     status: str
     message: str
-

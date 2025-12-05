@@ -6,13 +6,12 @@ from typing import Any, Dict
 import dramatiq
 import redis
 
+from app.config import logger
 from app.database.redis import get_redis_broker, get_redis_url, get_result_backend
 from app.workers import (
     process_fraud_detection_job_sync,
     process_model_training_job_sync,
 )
-from app.config import logger
-
 
 redis_broker = get_redis_broker()
 result_backend = get_result_backend()

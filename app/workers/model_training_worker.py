@@ -7,7 +7,13 @@ from peft import LoraConfig, PeftModel, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import SFTConfig, SFTTrainer
 
-from app.config import TRAIN_BATCH_SIZE, TRAIN_EPOCHS, logger, MODEL_NAME, LOW_CPU_MEM_USAGE
+from app.config import (
+    LOW_CPU_MEM_USAGE,
+    MODEL_NAME,
+    TRAIN_BATCH_SIZE,
+    TRAIN_EPOCHS,
+    logger,
+)
 from app.utils import generate_prompts_from_dataset
 
 

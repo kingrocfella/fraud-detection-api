@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 from dramatiq.results.errors import ResultFailure, ResultMissing, ResultTimeout
 
+from app.config import logger
 from app.queues.job_queue import (
     JOB_TYPE_FRAUD_DETECTION,
     JOB_TYPE_KEY_PREFIX,
@@ -13,7 +14,6 @@ from app.queues.job_queue import (
     process_model_training_job,
     result_backend,
 )
-from app.config import logger
 
 
 def _get_job_type(message_id: str) -> str | None:

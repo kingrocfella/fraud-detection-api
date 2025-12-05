@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+# Import queues module to register Dramatiq actors
+import app.queues.job_queue  # type: ignore  # noqa: F401
 from app.middlewares import LoggingMiddleware
 from app.routes import (
     detect_fraud_router,
@@ -7,9 +9,6 @@ from app.routes import (
     health_router,
     jobs_router,
 )
-
-# Import queues module to register Dramatiq actors
-import app.queues.job_queue  # type: ignore  # noqa: F401
 
 app = FastAPI(title="Nigerian Transactions Fraud Detection API", version="1.0.0")
 
