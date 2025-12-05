@@ -45,7 +45,7 @@ def process_fraud_detection_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]
 
         # Generate output
         logger.info("Generating output...")
-        outputs = model.generate(**inputs, max_new_tokens=100)
+        outputs = model.generate(**inputs, max_new_tokens=1000)
         logger.info("Model generated output successfully")
 
         # Decode response

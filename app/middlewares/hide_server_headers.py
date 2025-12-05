@@ -12,10 +12,14 @@ class HideServerHeadersMiddleware(BaseHTTPMiddleware):
         """Dispatch the middleware."""
         try:
             response = await call_next(request)
+            logger.debug("Response headers before removal: %s", dict(response.headers))
 
             for header in ["server", "x-powered-by", "date"]:
                 if header in response.headers:
+                    logger.debug("Removing header: %s", header)
                     del response.headers[header]
+            
+            logger.debug("Response headers after removal: %s", dict(response.headers))
 
             return response
         except Exception as e:

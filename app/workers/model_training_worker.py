@@ -33,19 +33,16 @@ def process_model_training_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]:
         logger.info(f"Loading model {MODEL_NAME}...")
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
-            dtype=torch.float32,
             device_map="cpu",
-            low_cpu_mem_usage=bool(LOW_CPU_MEM_USAGE),
         )
         logger.info("Model loaded successfully")
 
         # Configure LoRA
         logger.info("Configuring LoRA...")
         lora_config = LoraConfig(
-            r=8,
-            lora_alpha=16,
+            r=4,
+            lora_alpha=8,
             lora_dropout=0.05,
-            bias="none",
             task_type="CAUSAL_LM",
         )
         model = get_peft_model(model, lora_config)
@@ -85,6 +82,10 @@ def process_model_training_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]:
         tokenized_dataset = dataset.map(tokenize_func, batched=True)
         logger.info("Dataset tokenized successfully")
 
+        logger.info("Enabling gradient checkpointing...")
+        model.gradient_checkpointing_enable()
+        logger.info("Gradient checkpointing enabled successfully")
+
         # Configure trainer
         logger.info("Configuring trainer...")
         trainer = SFTTrainer(
@@ -94,14 +95,16 @@ def process_model_training_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]:
             args=SFTConfig(
                 output_dir="/app/models",
                 per_device_train_batch_size=TRAIN_BATCH_SIZE,
-                gradient_accumulation_steps=4,
+                gradient_accumulation_steps=8,
                 learning_rate=2e-4,
                 num_train_epochs=TRAIN_EPOCHS,
                 logging_steps=1,
                 save_strategy="epoch",
                 bf16=False,
-                fp16=False,
+                fp16=True,
                 use_cpu=True,
+                torch_compile=False,
+                ddp_find_unused_parameters=False,
             ),
         )
         logger.info("Trainer configured successfully")

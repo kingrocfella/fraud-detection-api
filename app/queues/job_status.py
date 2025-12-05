@@ -2,7 +2,7 @@
 
 from typing import Any, Dict
 
-from dramatiq.results.errors import ResultFailure, ResultMissing, ResultTimeout
+from dramatiq.results import ResultFailure, ResultMissing, ResultTimeout
 
 from app.config import logger
 from app.queues.job_queue import (
@@ -63,7 +63,10 @@ def _try_get_result(actor, message_id: str) -> Dict[str, Any]:
     """Try to get result from a specific actor."""
     try:
         logger.info("Trying to get result for message_id: %s", message_id)
-        message = actor.message_with_options(args=({},)).copy(message_id=message_id)
+
+        # Create a message with the correct message_id
+        template = actor.message_with_options(args=({},))
+        message = template.copy(message_id=message_id)
 
         try:
             result = message.get_result(backend=result_backend, block=False)
