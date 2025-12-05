@@ -21,14 +21,14 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
 
     try:
         # Load tokenizer
-        logger.info(f"Loading tokenizer for {MODEL_NAME}...")
+        logger.info("Loading tokenizer for %s...", MODEL_NAME)
         tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
         logger.info("Tokenizer loaded successfully")
 
         # Load base model on CPU
-        logger.info(f"Loading model {MODEL_NAME}...")
+        logger.info("Loading model %s...", MODEL_NAME)
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
             device_map="cpu",
@@ -44,14 +44,14 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
             task_type="CAUSAL_LM",
         )
         model = get_peft_model(model, lora_config)
-        logger.info(
-            f"LoRA configured. Trainable params: {model.print_trainable_parameters()}"
-        )
+        # print_trainable_parameters() prints to stdout and returns None
+        logger.info("LoRA configured. Trainable params:")
+        model.print_trainable_parameters()
 
         # Load and prepare dataset
         logger.info("Loading dataset...")
         dataset = generate_prompts_from_dataset()
-        logger.info(f"Dataset loaded with {len(dataset)} samples")
+        logger.info("Dataset loaded with %d samples", len(dataset))
 
         # Tokenize dataset
         logger.info("Tokenizing dataset...")

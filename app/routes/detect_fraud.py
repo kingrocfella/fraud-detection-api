@@ -41,7 +41,7 @@ def detect_fraud(request: FraudDetectionRequest, key: str) -> JobQueuedResponse:
 
     except Exception as e:
         logger.error(
-            f"Error trying to queue fraud detection job: {str(e)}", exc_info=True
+            "Error trying to queue fraud detection job: %s", str(e), exc_info=True
         )
         raise HTTPException(
             status_code=500, detail=f"Failed to queue fraud detection job: {str(e)}"
