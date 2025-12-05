@@ -63,4 +63,3 @@ volumes:
   redis_data:
   shared_files:
   models:
-  logs:

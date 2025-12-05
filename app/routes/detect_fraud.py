@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 
-from app.config import TRAINING_SECURITY_KEY, logger
+from app.config import DETECT_FRAUD_SECURITY_KEY, logger
 from app.queues import enqueue_fraud_detection_job
 from app.schemas import FraudDetectionRequest, JobQueuedResponse
 
@@ -18,7 +18,7 @@ def detect_fraud(request: FraudDetectionRequest, key: str) -> JobQueuedResponse:
     Returns a job ID that can be used to check the status via GET /job/{message_id}.
     """
     try:
-        if key != TRAINING_SECURITY_KEY:
+        if key != DETECT_FRAUD_SECURITY_KEY:
             logger.warning("Invalid security key: %s", key)
             raise HTTPException(status_code=401, detail="Invalid security key")
 
@@ -35,6 +35,9 @@ def detect_fraud(request: FraudDetectionRequest, key: str) -> JobQueuedResponse:
             status="queued",
             message="Job has been queued for processing. Use GET /job/{message_id} to check status.",
         )
+
+    except HTTPException:
+        raise
 
     except Exception as e:
         logger.error(

@@ -31,7 +31,8 @@ services:
     working_dir: /app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
 
   worker:
     build: .
@@ -53,7 +54,8 @@ services:
     working_dir: /app
     command: dramatiq app.queues.job_queue
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
 
 volumes:
   redis_data:
