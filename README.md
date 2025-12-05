@@ -11,19 +11,12 @@ A FastAPI-based fraud detection service for Nigerian transactions, featuring asy
 - **Structured Logging**: Comprehensive logging with middleware support
 - **Production Ready**: Docker Compose setup for both development and production
 
-## Architecture
-
-The application consists of three main components:
-
-1. **API Service** (`app`): FastAPI application handling HTTP requests
-2. **Worker Service** (`worker`): Dramatiq workers processing background jobs
-3. **Redis**: Message broker and job queue backend
-
 ## Model & Dataset
 
 The fraud detection model (`Qwen/Qwen3-1.7B`) was trained using **5 million rows** of transaction data from the [Nigerian Financial Transactions and Fraud Detection Dataset](https://huggingface.co/datasets/electricsheepafrica/Nigerian-Financial-Transactions-and-Fraud-Detection-Dataset) on Hugging Face.
 
 This dataset contains:
+
 - 5,000,000 synthetic Nigerian financial transactions
 - 45+ advanced fraud detection features
 - Coverage of 6 Nigerian geo-regions
@@ -32,6 +25,14 @@ This dataset contains:
 - Localized merchant categories and user personas
 
 The dataset provides comprehensive features for training fraud detection models specifically tailored to Nigerian financial transaction patterns.
+
+## Architecture
+
+The application consists of three main components:
+
+1. **API Service** (`app`): FastAPI application handling HTTP requests
+2. **Worker Service** (`worker`): Dramatiq workers processing background jobs
+3. **Redis**: Message broker and job queue backend
 
 ## Setup
 
@@ -89,7 +90,8 @@ The API will be available at `http://localhost:8000`
 
 ## API Endpoints
 
-### Docs 
+### Docs
+
 - `GET /docs` - Displays all the APIs in this project
 
 ## Project Structure
@@ -127,6 +129,7 @@ The following tools are configured:
 - **pytest** (v8.3.4) - Testing framework with coverage reporting
 
 All configurations are in:
+
 - `pyproject.toml` - Black, isort, mypy, pytest configs
 - `.flake8` - Flake8 configuration
 - `Makefile` - Convenient command shortcuts
@@ -134,6 +137,7 @@ All configurations are in:
 ## Logging
 
 The application uses structured logging with the following log files:
+
 - `logs/app.log` - General application logs
 - `logs/errors.log` - Error logs
 
