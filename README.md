@@ -19,6 +19,20 @@ The application consists of three main components:
 2. **Worker Service** (`worker`): Dramatiq workers processing background jobs
 3. **Redis**: Message broker and job queue backend
 
+## Model & Dataset
+
+The fraud detection model (`Qwen/Qwen3-1.7B`) was trained using **5 million rows** of transaction data from the [Nigerian Financial Transactions and Fraud Detection Dataset](https://huggingface.co/datasets/electricsheepafrica/Nigerian-Financial-Transactions-and-Fraud-Detection-Dataset) on Hugging Face.
+
+This dataset contains:
+- 5,000,000 synthetic Nigerian financial transactions
+- 45+ advanced fraud detection features
+- Coverage of 6 Nigerian geo-regions
+- Multiple fraud types including account takeover, identity fraud, SIM swap fraud, and more
+- Nigerian-specific payment channels (USSD, Mobile App, Card, Bank Transfer)
+- Localized merchant categories and user personas
+
+The dataset provides comprehensive features for training fraud detection models specifically tailored to Nigerian financial transaction patterns.
+
 ## Setup
 
 ### Prerequisites
