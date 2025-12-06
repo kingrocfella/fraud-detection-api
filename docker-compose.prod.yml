@@ -2,7 +2,7 @@ x-common-env: &common-env
   TRAIN_BATCH_SIZE: "1"
   TRAIN_EPOCHS: "2"
   MODEL_NAME: "Qwen/Qwen1.5-1.8B-Chat"
-  LOW_CPU_MEM_USAGE: "False"
+  LOW_CPU_MEM_USAGE: "True"
   REDIS_HOST: "redis"
   REDIS_PORT: "6379"
   REDIS_DB: "0"
@@ -56,7 +56,7 @@ services:
       - ./models:/app/models
       - shared_files:/app/shared_files
     working_dir: /app
-    command: dramatiq app.queues.job_queue --processes 4 --threads 1
+    command: dramatiq app.queues.job_queue --processes 8 --threads 1
     depends_on:
       redis:
         condition: service_healthy
