@@ -1,6 +1,7 @@
+from typing import Callable
+
 from fastapi import HTTPException, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from typing import Callable
 
 from app.config import logger
 
@@ -18,7 +19,7 @@ class HideServerHeadersMiddleware(BaseHTTPMiddleware):
                 if header in response.headers:
                     logger.debug("Removing header: %s", header)
                     del response.headers[header]
-            
+
             logger.debug("Response headers after removal: %s", dict(response.headers))
 
             return response

@@ -4,6 +4,7 @@ import os
 
 from dotenv import load_dotenv
 from dramatiq.brokers.redis import RedisBroker
+from dramatiq.middleware import TimeLimit
 from dramatiq.results import Results
 from dramatiq.results.backends.redis import RedisBackend
 
@@ -42,6 +43,9 @@ def get_redis_broker() -> RedisBroker:
     if _redis_broker is None:
         logger.debug("Initializing Redis broker: %s", REDIS_URL)
         _redis_broker = RedisBroker(url=REDIS_URL)
+
+        # Add TimeLimit middleware to enforce time limits set in actor decorators
+        _redis_broker.add_middleware(TimeLimit())
 
         # Add Results middleware for storing job results
         result_backend = get_result_backend()

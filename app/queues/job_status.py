@@ -2,7 +2,7 @@
 
 from typing import Any, Dict
 
-from dramatiq.results.errors import ResultMissing, ResultTimeout, ResultFailure
+from dramatiq.results.errors import ResultFailure, ResultMissing, ResultTimeout
 
 from app.config import logger
 from app.queues.job_queue import (

@@ -20,28 +20,38 @@ def generate_prompts_from_dataset():
         train = new_train
 
     logger.info("Truncating dataset to %d samples", len(train))
+
     # Generate prompt from datasets
     logger.info("Generating prompts from dataset...")
     formatted_ds = Dataset.from_list(
-        [generate_prompt(record, record_number=i) for i, record in enumerate(train)]
+        [
+            generate_prompt(record, record_number=i, total_records=len(train))
+            for i, record in enumerate(train)
+        ]
     )
     logger.info("Prompts generated successfully")
     return formatted_ds
 
 
-def generate_prompt(record, record_number=None):
+def generate_prompt(record, record_number=None, total_records=1):
     """
     Generate a prompt for fraud detection.
 
     Args:
         record: Either a dict (from dataset) or FraudDetectionRequest (from API)
         record_number: Optional record number/index for logging purposes
+        total_records: Total number of records for progress calculation
 
     Returns:
         dict with 'instruction' and optionally 'output' keys
     """
-    if record_number is not None:
-        logger.info("Generating prompt for record number: %d", record_number)
+
+    if record_number is not None and total_records > 0:
+        if record_number % 100 == 0:
+            progress = int(((record_number + 1) / total_records) * 100)
+            logger.info(
+                "Progress: %d%% (%d/%d)", progress, record_number + 1, total_records
+            )
     else:
         logger.info("Generating prompt for API request")
 
@@ -82,9 +92,10 @@ def generate_prompt(record, record_number=None):
     # For training data (dict), include the output
     if isinstance(record, dict) and "is_fraud" in record:
         if record_number is not None:
-            logger.info(
-                "Prompt generated successfully for record number: %d", record_number
-            )
+            if record_number % 100 == 0:
+                logger.info(
+                    "Prompt generated successfully for record number: %d", record_number
+                )
         else:
             logger.info("Prompt generated successfully")
         return {"instruction": prompt, "output": "yes" if record["is_fraud"] else "no"}
