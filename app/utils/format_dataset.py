@@ -47,7 +47,7 @@ def generate_prompt(record, record_number=None, total_records=1):
     """
 
     if record_number is not None and total_records > 0:
-        if record_number % 100 == 0:
+        if record_number % 5000 == 0:
             progress = int(((record_number + 1) / total_records) * 100)
             logger.info(
                 "Progress: %d%% (%d/%d)", progress, record_number + 1, total_records
@@ -92,7 +92,7 @@ def generate_prompt(record, record_number=None, total_records=1):
     # For training data (dict), include the output
     if isinstance(record, dict) and "is_fraud" in record:
         if record_number is not None:
-            if record_number % 100 == 0:
+            if record_number % 5000 == 0:
                 logger.info(
                     "Prompt generated successfully for record number: %d", record_number
                 )
