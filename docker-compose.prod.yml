@@ -1,7 +1,7 @@
 x-common-env: &common-env
   TRAIN_BATCH_SIZE: "1"
   TRAIN_EPOCHS: "2"
-  MODEL_NAME: "Qwen/Qwen1.5-1.8B-Chat"
+  MODEL_NAME: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
   LOW_CPU_MEM_USAGE: "True"
   REDIS_HOST: "redis"
   REDIS_PORT: "6379"
