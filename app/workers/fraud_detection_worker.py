@@ -47,9 +47,9 @@ def process_fraud_detection_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]
         logger.info("Generating output...")
         outputs = model.generate(
             **inputs,
-            max_new_tokens=12,  # still short
+            max_new_tokens=100,
             do_sample=True,
-            temperature=0.85,
+            temperature=0.6,
             top_p=0.9,
             top_k=50,
             num_beams=1,
@@ -62,17 +62,10 @@ def process_fraud_detection_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]
         # Decode response
         logger.info("Decoding response...")
         decoded = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        # Extract text after the explicit Answer: cue, then take a short phrase
-        answer_text = (
-            decoded.split("Answer:", 1)[1].strip()
-            if "Answer:" in decoded
-            else decoded.strip()
-        )
-        tokens = answer_text.split()
-        response = " ".join(tokens[:3]) if tokens else ""
-        logger.info("Response decoded successfully: %s", response)
 
-        return {"response": response}
+        logger.info("Response decoded successfully: %s", decoded)
+
+        return {"response": decoded}
 
     except Exception as e:
         logger.error("Error processing fraud detection job: %s", e, exc_info=True)
