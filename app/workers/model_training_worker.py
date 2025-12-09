@@ -4,17 +4,12 @@ from typing import Any, Dict
 
 import torch  # Import torch for dtype
 from peft import LoraConfig, get_peft_model
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
-)  # Import BNBConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import SFTConfig, SFTTrainer
 
 from app.config import (
     LOW_CPU_MEM_USAGE,
     MODEL_NAME,
-    TRAIN_BATCH_SIZE,
     TRAIN_EPOCHS,
     TRAIN_MAX_STEPS,
     logger,
@@ -22,9 +17,7 @@ from app.config import (
 from app.utils import generate_prompts_from_dataset
 
 
-def process_model_training_job_sync_optimized(
-    _job_data: Dict[str, Any]
-) -> Dict[str, Any]:
+def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]:
     """Optimized synchronous implementation of model training job processing for CPU-only, low-RAM systems."""
     logger.info("Starting optimized model training job on CPU")
 
@@ -119,19 +112,14 @@ def process_model_training_job_sync_optimized(
         # --- 8. Configure Trainer (Efficiency and Memory Settings) ---
         logger.info("Configuring trainer...")
 
-        # Use a smaller effective batch size with aggressive accumulation
-        # Effective batch size = per_device_train_batch_size * gradient_accumulation_steps
-        PER_DEVICE_BATCH = 1  # Keep this as low as possible to fit in RAM
-        GRADIENT_ACCUMULATION = 16  # Increase this to compensate for small batch size
-
         trainer = SFTTrainer(
             model=model,
             processing_class=tokenizer,
             train_dataset=tokenized_dataset,
             args=SFTConfig(
                 output_dir="/app/models",
-                per_device_train_batch_size=PER_DEVICE_BATCH,
-                gradient_accumulation_steps=GRADIENT_ACCUMULATION,  # Aggressive accumulation
+                per_device_train_batch_size=1,
+                gradient_accumulation_steps=16,  # Aggressive accumulation
                 learning_rate=2e-4,
                 num_train_epochs=TRAIN_EPOCHS,
                 max_steps=TRAIN_MAX_STEPS,
