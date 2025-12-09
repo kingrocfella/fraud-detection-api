@@ -43,13 +43,17 @@ def process_fraud_detection_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]
         inputs = tokenizer(prompt, return_tensors="pt")
         logger.info("Inputs tokenized successfully")
 
-        # Generate output (constrain to a short yes/no answer)
+        # Generate output (short answer with light sampling to allow "guessing")
         logger.info("Generating output...")
         outputs = model.generate(
             **inputs,
-            max_new_tokens=100,
-            do_sample=False,
+            max_new_tokens=12,  # still short
+            do_sample=True,
+            temperature=0.85,
+            top_p=0.9,
+            top_k=50,
             num_beams=1,
+            repetition_penalty=1.05,
             eos_token_id=tokenizer.eos_token_id,
             pad_token_id=tokenizer.eos_token_id,
         )
@@ -58,7 +62,14 @@ def process_fraud_detection_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]
         # Decode response
         logger.info("Decoding response...")
         decoded = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        response = decoded.split()[0] if decoded else decoded
+        # Extract text after the explicit Answer: cue, then take a short phrase
+        answer_text = (
+            decoded.split("Answer:", 1)[1].strip()
+            if "Answer:" in decoded
+            else decoded.strip()
+        )
+        tokens = answer_text.split()
+        response = " ".join(tokens[:3]) if tokens else ""
         logger.info("Response decoded successfully: %s", response)
 
         return {"response": response}
