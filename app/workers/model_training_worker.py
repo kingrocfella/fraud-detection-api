@@ -6,7 +6,13 @@ from peft import LoraConfig, PeftModel, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import SFTConfig, SFTTrainer
 
-from app.config import MODEL_NAME, TRAIN_BATCH_SIZE, TRAIN_EPOCHS, logger
+from app.config import (
+    LOW_CPU_MEM_USAGE,
+    MODEL_NAME,
+    TRAIN_BATCH_SIZE,
+    TRAIN_EPOCHS,
+    logger,
+)
 from app.utils import generate_prompts_from_dataset
 
 
@@ -26,7 +32,9 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
         logger.info("Loading model %s...", MODEL_NAME)
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
-            device_map="cpu",
+            device_map={"": "cpu"},
+            low_cpu_mem_usage=LOW_CPU_MEM_USAGE,
+            torch_dtype="auto",
         )
         logger.info("Model loaded successfully")
 
@@ -39,7 +47,7 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
             task_type="CAUSAL_LM",
         )
         model = get_peft_model(model, lora_config)
-        # print_trainable_parameters() prints to stdout and returns None
+
         logger.info("LoRA configured. Trainable params:")
         model.print_trainable_parameters()
 
@@ -93,9 +101,9 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
                 num_train_epochs=TRAIN_EPOCHS,
                 logging_steps=1,
                 save_strategy="epoch",
-                bf16=False,
-                fp16=True,
                 use_cpu=True,
+                bf16=False,
+                fp16=False,
                 torch_compile=False,
                 ddp_find_unused_parameters=False,
             ),

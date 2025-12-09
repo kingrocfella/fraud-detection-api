@@ -14,10 +14,9 @@ def generate_prompts_from_dataset():
 
     # Truncate dataset in dev environment
     if DATA_TRAIN_END:
-        new_train = []
-        for i in range(0, int(DATA_TRAIN_END)):
-            new_train.append(train[i])
-        train = new_train
+        limit = min(int(DATA_TRAIN_END), len(train))
+        # Hugging Face datasets support efficient slicing via select
+        train = train.select(range(limit))
 
     logger.info("Truncating dataset to %d samples", len(train))
 
