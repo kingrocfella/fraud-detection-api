@@ -8,6 +8,7 @@ from .settings import (
     TRAIN_MAX_STEPS,
     TRAIN_BATCH_SIZE,
     TRAIN_EPOCHS,
+    MAX_SEQ_LENGTH,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "DETECT_FRAUD_SECURITY_KEY",
     "FINETUNE_MODEL_SECURITY_KEY",
     "TRAIN_MAX_STEPS",
+    "MAX_SEQ_LENGTH",
 ]

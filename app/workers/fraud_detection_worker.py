@@ -7,7 +7,6 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from app.config import logger
 from app.utils import generate_prompt
 
-# Lazy-loaded model and tokenizer instances
 _MODEL = None
 _TOKENIZER = None
 
@@ -35,7 +34,8 @@ def process_fraud_detection_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]
 
         # Generate prompt from request
         prompt_data = generate_prompt(job_data["request"])
-        prompt = prompt_data["instruction"]
+        instruction = prompt_data["instruction"].strip()
+        prompt = f"{instruction}\n\nAnswer:"
         logger.info("Prompt generated successfully")
 
         # Tokenize inputs
@@ -43,15 +43,23 @@ def process_fraud_detection_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]
         inputs = tokenizer(prompt, return_tensors="pt")
         logger.info("Inputs tokenized successfully")
 
-        # Generate output
+        # Generate output (constrain to a short yes/no answer)
         logger.info("Generating output...")
-        outputs = model.generate(**inputs, max_new_tokens=1000)
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=100,
+            do_sample=False,
+            num_beams=1,
+            eos_token_id=tokenizer.eos_token_id,
+            pad_token_id=tokenizer.eos_token_id,
+        )
         logger.info("Model generated output successfully")
 
         # Decode response
         logger.info("Decoding response...")
-        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        logger.info("Response decoded successfully")
+        decoded = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        response = decoded.split()[0] if decoded else decoded
+        logger.info("Response decoded successfully: %s", response)
 
         return {"response": response}
 
