@@ -11,6 +11,7 @@ from app.config import (
     MODEL_NAME,
     TRAIN_BATCH_SIZE,
     TRAIN_EPOCHS,
+    TRAIN_MAX_STEPS,
     logger,
 )
 from app.utils import generate_prompts_from_dataset
@@ -99,6 +100,7 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
                 gradient_accumulation_steps=8,
                 learning_rate=2e-4,
                 num_train_epochs=TRAIN_EPOCHS,
+                max_steps=TRAIN_MAX_STEPS,
                 logging_steps=1,
                 save_strategy="epoch",
                 use_cpu=True,
