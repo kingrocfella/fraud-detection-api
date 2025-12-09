@@ -158,23 +158,25 @@ def process_model_training_job_sync_optimized(
         trainer.train()
         logger.info("Training completed successfully!")
 
-        # Merge LoRA weights into base model
-
         logger.info("Merging LoRA weights into base model...")
 
-        model = PeftModel.from_pretrained(model, "/app/models/checkpoint-2")
+        # The model object is already the trained PeftModel (LoRA adapted model)
+        # Use merge_and_unload to convert the PeftModel wrapper into a standard AutoModelForCausalLM
+        # with weights baked in. This is much safer and easier than loading from a specific checkpoint path.
+        merged_model = model.merge_and_unload()
 
         logger.info("LoRA weights merged successfully")
 
         # Save the merged model and tokenizer
-
         logger.info("Saving merged model and tokenizer...")
 
-        model.save_pretrained("/app/models/merged")
+        # Save the full, merged model
+        merged_model.save_pretrained("/app/models/merged")
 
+        # Save the tokenizer (which was already configured)
         tokenizer.save_pretrained("/app/models/merged")
 
-        logger.info("Model and tokenizer saved successfully")
+        logger.info("Model and tokenizer saved successfully to /app/models/merged")
 
         return {
             "status": "success",
