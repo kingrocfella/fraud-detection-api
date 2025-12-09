@@ -64,10 +64,17 @@ def process_fraud_detection_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]
         # Decode response
         logger.info("Decoding response...")
         decoded = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
         logger.info("Response decoded successfully: %s", decoded)
 
-        return {"response": decoded}
+        # Extract the part after "Answer:" and strip
+        if "Answer:" in decoded:
+            response = decoded.split("Answer:", 1)[1].strip()
+        else:
+            response = decoded.strip()
+
+        logger.info("Response extracted successfully: %s", response)
+
+        return {"response": response}
 
     except Exception as e:
         logger.error("Error processing fraud detection job: %s", e, exc_info=True)
