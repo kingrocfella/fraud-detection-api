@@ -2,7 +2,7 @@ x-common-env: &common-env
   TRAIN_BATCH_SIZE: "1"
   TRAIN_EPOCHS: "1"
   MODEL_NAME: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-  DATA_TRAIN_END: "1000000"
+  DATA_TRAIN_END: "500000"
   LOW_CPU_MEM_USAGE: "True"
   REDIS_HOST: "redis"
   REDIS_PORT: "6379"

@@ -68,8 +68,14 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
         dataset = generate_prompts_from_dataset()
         logger.info("Dataset loaded with %d samples", len(dataset))
 
-        # --- 6. Tokenize Dataset with Parallelism (Speed Optimization) ---
-        logger.info("Tokenizing dataset using multiple processes (num_proc=4)...")
+        # Limit dataset to keep training time short on CPU
+        max_train_examples = min(len(dataset), TRAIN_MAX_STEPS)
+        if max_train_examples < len(dataset):
+            dataset = dataset.select(range(max_train_examples))
+            logger.info("Truncated dataset to %d samples to match TRAIN_MAX_STEPS", max_train_examples)
+
+        # --- 6. Tokenize Dataset (single process to avoid worker deadlocks) ---
+        logger.info("Tokenizing dataset (single process)...")
 
         # Use fewer tokens/shorter max_length to save memory during training
         MAX_SEQ_LENGTH = 384
@@ -91,15 +97,10 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
             tokenized["labels"] = tokenized["input_ids"].copy()
             return tokenized
 
-        # CRITICAL OPTIMIZATION: Use num_proc to utilize your CPU cores and prevent stalling
         tokenized_dataset = dataset.map(
             tokenize_func,
             batched=True,
-            num_proc=4,  # Adjust this based on available cores (e.g., 4 or 8)
-            remove_columns=[
-                "instruction",
-                "output",
-            ],  # Remove original columns to save memory
+            remove_columns=["instruction", "output"],  # Remove original columns to save memory
         )
         logger.info("Dataset tokenized successfully")
 
@@ -119,12 +120,12 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
             args=SFTConfig(
                 output_dir="/app/models",
                 per_device_train_batch_size=1,
-                gradient_accumulation_steps=16,  # Aggressive accumulation
+                gradient_accumulation_steps=8,  # Keep small but reasonable on CPU
                 learning_rate=2e-4,
                 num_train_epochs=TRAIN_EPOCHS,
                 max_steps=TRAIN_MAX_STEPS,
-                logging_steps=1,
-                save_strategy="epoch",
+                logging_steps=10,
+                save_strategy="no",  # Avoid checkpoint I/O on CPU
                 # CPU-specific settings
                 use_cpu=True,
                 # Disable all GPU-specific or high-precision training
@@ -136,7 +137,7 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
                 # This helps aggressively remove tensors that are no longer needed
                 # Can sometimes be slower, but critical for low-RAM.
                 remove_unused_columns=True,
-                dataloader_num_workers=2,  # Set low num_workers to prevent a data-loader deadlock
+                dataloader_num_workers=0,  # Avoid multiprocessing dataloader deadlocks on CPU
             ),
         )
         logger.info("Trainer configured successfully")
