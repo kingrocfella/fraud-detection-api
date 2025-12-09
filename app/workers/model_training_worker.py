@@ -77,8 +77,8 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
         # --- 6. Tokenize Dataset (single process to avoid worker deadlocks) ---
         logger.info("Tokenizing dataset (single process)...")
 
-        # Use fewer tokens/shorter max_length to save memory during training
-        MAX_SEQ_LENGTH = 384
+        # Use fewer tokens/shorter max_length to save memory and speed up training
+        MAX_SEQ_LENGTH = 256
 
         def tokenize_func(batch):
             # Combine instruction and output for causal LM training
@@ -120,7 +120,7 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
             args=SFTConfig(
                 output_dir="/app/models",
                 per_device_train_batch_size=1,
-                gradient_accumulation_steps=8,  # Keep small but reasonable on CPU
+                gradient_accumulation_steps=4,  # Smaller accumulation to shorten wall-clock
                 learning_rate=2e-4,
                 num_train_epochs=TRAIN_EPOCHS,
                 max_steps=TRAIN_MAX_STEPS,
