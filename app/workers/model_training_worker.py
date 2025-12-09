@@ -120,9 +120,6 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
 
         logger.info("Merging LoRA weights into base model...")
 
-        # The model object is already the trained PeftModel (LoRA adapted model)
-        # Use merge_and_unload to convert the PeftModel wrapper into a standard AutoModelForCausalLM
-        # with weights baked in. This is much safer and easier than loading from a specific checkpoint path.
         merged_model = model.merge_and_unload()
 
         logger.info("LoRA weights merged successfully")

@@ -2,18 +2,25 @@
 
 A FastAPI-based fraud detection service for Nigerian transactions, featuring asynchronous job processing with Dramatiq workers and Redis queue management.
 
+## Live Deployment
+
+This project is hosted and available at: **[https://fraud-detection.kingsley-api.name.ng/docs](https://fraud-detection.kingsley-api.name.ng/docs)**
+
+You can explore the interactive API documentation, test endpoints, and view all available operations directly in your browser.
+
 ## Features
 
 - **Asynchronous Job Processing**: Background job queue using Dramatiq and Redis
-- **Fraud Detection**: ML-powered fraud detection for transaction analysis
-- **Model Fine-tuning**: Endpoint for fine-tuning fraud detection models
+- **Fraud Detection**: ML-powered fraud detection with reasoning for transaction analysis
+- **Model Fine-tuning**: Endpoint for fine-tuning fraud detection models on CPU-only servers
 - **Job Status Tracking**: Real-time job status monitoring via REST API
 - **Structured Logging**: Comprehensive logging with middleware support
 - **Production Ready**: Docker Compose setup for both development and production
+- **CPU-Optimized Training**: Optimized for CPU-only environments with memory-efficient settings
 
 ## Model & Dataset
 
-The fraud detection model (`Qwen/Qwen3-1.7B`) was trained using **5 million rows** of transaction data from the [Nigerian Financial Transactions and Fraud Detection Dataset](https://huggingface.co/datasets/electricsheepafrica/Nigerian-Financial-Transactions-and-Fraud-Detection-Dataset) on Hugging Face.
+The fraud detection model was trained using the transaction data from the [Nigerian Financial Transactions and Fraud Detection Dataset](https://huggingface.co/datasets/electricsheepafrica/Nigerian-Financial-Transactions-and-Fraud-Detection-Dataset) on Hugging Face.
 
 This dataset contains:
 
@@ -59,40 +66,29 @@ source .venv/bin/activate
 make install-dev
 ```
 
-### Environment Variables
+### Run with Docker
 
-Create a `.env` file in the project root with the following variables:
-
-```env
-# Model Configuration
-MODEL_NAME=Qwen/Qwen3-1.7B
-TRAIN_BATCH_SIZE=4
-TRAIN_EPOCHS=3
-LOW_CPU_MEM_USAGE=False
-DATA_TRAIN_END=10
-
-# Redis Configuration
-REDIS_HOST=redis
-REDIS_PORT=6379
-REDIS_DB=0
-
-```
-
-### Run with Docker (Development)
+#### Development
 
 ```bash
 # Build and run all services
 docker-compose up --build
-
 ```
 
 The API will be available at `http://localhost:8899`
 
-## API Endpoints
+#### Production
 
-### Docs
+```bash
+# Build and run production services
+docker-compose -f docker-compose.prod.yml up --build
+```
 
-- `GET /docs` - Displays all the APIs in this project
+Production configuration includes:
+
+- Optimized worker processes (8 processes, 1 thread each)
+- Production-ready environment variables
+- CPU-optimized training settings
 
 ## Project Structure
 
