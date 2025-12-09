@@ -33,7 +33,10 @@ def process_fraud_detection_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]
         model, tokenizer = _get_model_and_tokenizer()
 
         # Generate prompt from request
-        prompt_data = generate_prompt(job_data["request"])
+        prompt_data = generate_prompt(
+            job_data["request"],
+            state_reasoning="State the primary reason for your decision.",
+        )
         instruction = prompt_data["instruction"].strip()
         prompt = f"{instruction}\n\nAnswer:"
         logger.info("Prompt generated successfully")
@@ -43,13 +46,12 @@ def process_fraud_detection_job_sync(job_data: Dict[str, Any]) -> Dict[str, Any]
         inputs = tokenizer(prompt, return_tensors="pt")
         logger.info("Inputs tokenized successfully")
 
-        # Generate output (short answer with light sampling to allow "guessing")
         logger.info("Generating output...")
         outputs = model.generate(
             **inputs,
-            max_new_tokens=100,
+            max_new_tokens=1000,
             do_sample=True,
-            temperature=0.6,
+            temperature=0.5,
             top_p=0.9,
             top_k=50,
             num_beams=1,

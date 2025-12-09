@@ -32,7 +32,7 @@ def generate_prompts_from_dataset():
     return formatted_ds
 
 
-def generate_prompt(record, record_number=None, total_records=1):
+def generate_prompt(record, record_number=None, total_records=1, state_reasoning=None):
     """
     Generate a prompt for fraud detection.
 
@@ -40,7 +40,7 @@ def generate_prompt(record, record_number=None, total_records=1):
         record: Either a dict (from dataset) or FraudDetectionRequest (from API)
         record_number: Optional record number/index for logging purposes
         total_records: Total number of records for progress calculation
-
+        state_reasoning: Whether to include state reasoning in the prompt
     Returns:
         dict with 'instruction' and optionally 'output' keys
     """
@@ -85,7 +85,8 @@ def generate_prompt(record, record_number=None, total_records=1):
     - IP Geo Region: {get_value(record, 'ip_geo_region')}
   
 
-  Is this transaction fraudulent? Answer with a simple yes or no    
+  Is this transaction fraudulent? Answer with a simple yes or no.    
+  {state_reasoning if state_reasoning else ""}
   """
 
     # For training data (dict), include the output
