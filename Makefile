@@ -4,6 +4,17 @@
 # NOTE: this app runs its ML models in-process (HuggingFace transformers), so it
 # has no Ollama service and no `ensure-ollama-network` target — it does not use
 # the shared word-games-ollama daemon. Redis is its only datastore.
+#
+# It also has NO backup targets, deliberately, and that is the one place it
+# diverges from every other app in the portfolio. There are no accounts here and
+# nothing durable to lose: every key it writes is `setex`-bound job metadata that
+# expires after JOB_TYPE_TTL_DAYS (default 7). Backing that up would capture
+# state that is already worthless by the time anyone restored it.
+#
+# The `fraud_models` volume is a different matter — it holds the fine-tuned
+# artifact and the HuggingFace cache, which cost a training run to reproduce
+# rather than a query. That is a build output, not a database, so it is not on
+# the nightly database schedule; archive it after a fine-tune completes.
 
 .PHONY: up down restart logs ps rebuild sh check-env init-env \
 	install-dev format format-check lint type-check test check clean help
