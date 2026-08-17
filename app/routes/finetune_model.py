@@ -1,27 +1,36 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Header, HTTPException, Request, status
 
 from app.config import FINETUNE_MODEL_SECURITY_KEY, logger
 from app.queues import enqueue_model_training_job
 from app.schemas import JobQueuedResponse
+from app.security import SECURITY_KEY_HEADER, enforce_rate_limit, verify_security_key
 
 router = APIRouter()
 
 
-@router.get(
+# POST, not GET: this queues a fine-tuning run, which is the most expensive
+# thing this service can be asked to do. A GET invites a crawler, a prefetcher
+# or a retried browser navigation to start one.
+@router.post(
     "/finetune-model",
     response_model=JobQueuedResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
-def finetune_model(key: str) -> JobQueuedResponse:
+def finetune_model(
+    http_request: Request,
+    key: str = Header(default="", alias=SECURITY_KEY_HEADER),
+) -> JobQueuedResponse:
     """Queue a model fine-tuning job.
+
+    The access-control key is an `X-API-Key` header, not a query parameter.
 
     Returns a job ID that can be used to check the status via GET /job/{message_id}.
     """
-    try:
-        if key != FINETUNE_MODEL_SECURITY_KEY:
-            logger.warning("Invalid security key: %s", key)
-            raise HTTPException(status_code=401, detail="Invalid security key")
+    client_host = http_request.client.host if http_request.client else "unknown"
+    enforce_rate_limit("finetune-model", client_host)
+    verify_security_key(key, FINETUNE_MODEL_SECURITY_KEY)
 
+    try:
         logger.info("Queueing model fine-tuning job")
 
         # Enqueue the job
@@ -43,5 +52,5 @@ def finetune_model(key: str) -> JobQueuedResponse:
             "Error trying to queue model training job: %s", str(e), exc_info=True
         )
         raise HTTPException(
-            status_code=500, detail=f"Failed to queue model training job: {str(e)}"
+            status_code=500, detail="Failed to queue model training job"
         ) from e

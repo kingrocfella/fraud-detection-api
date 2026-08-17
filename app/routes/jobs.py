@@ -1,8 +1,8 @@
 """Unified job status routes."""
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Header, HTTPException, Request, status
 
-from app.config import logger
+from app.config import DETECT_FRAUD_SECURITY_KEY, FINETUNE_MODEL_SECURITY_KEY, logger
 from app.queues import JOB_TYPE_FRAUD_DETECTION, JOB_TYPE_MODEL_TRAINING, get_job_status
 from app.schemas import (
     FraudDetectionResult,
@@ -10,6 +10,7 @@ from app.schemas import (
     JobStatusPending,
     ModelTrainingResult,
 )
+from app.security import SECURITY_KEY_HEADER, enforce_rate_limit, verify_any_security_key
 
 router = APIRouter()
 
@@ -24,11 +25,25 @@ router = APIRouter()
 )
 def get_job_status_endpoint(
     message_id: str,
+    http_request: Request,
+    key: str = Header(default="", alias=SECURITY_KEY_HEADER),
 ) -> FraudDetectionResult | ModelTrainingResult | JobStatusPending | JobStatusFailed:
     """Get the status of any background job.
 
+    This route serves the *results* — a fraud verdict on a real transaction, or
+    a training outcome — so it is gated and rate limited like the routes that
+    create the jobs. It accepts either configured key, because it answers for
+    both job types. Without the gate a message ID is a bearer capability that
+    anyone reaching this service could probe for, without bound.
+
     Returns the job status and result if completed.
     """
+    client_host = http_request.client.host if http_request.client else "unknown"
+    enforce_rate_limit("job-status", client_host)
+    verify_any_security_key(
+        key, (DETECT_FRAUD_SECURITY_KEY, FINETUNE_MODEL_SECURITY_KEY)
+    )
+
     try:
         status_info = get_job_status(message_id)
         job_type = status_info.get("job_type")

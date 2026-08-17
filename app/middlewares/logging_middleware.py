@@ -19,13 +19,14 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         # Get client IP
         client_ip = request.client.host if request.client else "unknown"
 
-        # Log request
+        # Log request. Deliberately NOT logging query params — they can carry the
+        # access-control key; the SanitizingFormatter is a backstop, not a licence
+        # to log secrets at the call site.
         logger.info(
-            "API Request: %s %s - Client: %s - Query: %s",
+            "API Request: %s %s - Client: %s",
             request.method,
             request.url.path,
             client_ip,
-            dict(request.query_params),
         )
 
         # Process request

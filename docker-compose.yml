@@ -1,66 +1,79 @@
+# The required, gitignored .env is injected into every container — it is the
+# only environment file in this repository. Published host ports bind to
+# 127.0.0.1 so Redis and the API are reachable from this machine only, never the
+# LAN. This is the single canonical compose file (no prod/override variants).
+x-app-env: &app-env
+  - path: ./.env
+    required: true
+
+x-app-image: &app-image
+  build: .
+  image: fraud-detection-api
+  restart: unless-stopped
+  env_file: *app-env
+
 services:
   redis:
-    image: redis:7-alpine
+    # Digest-pinned so a rebuild months from now is the same bytes.
+    image: redis:7-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2
     container_name: fraud-detection-redis
     restart: unless-stopped
+    security_opt: ['no-new-privileges:true']
+    pids_limit: 256
     ports:
-      - 6379:6379
+      # Localhost only — Redis is not reachable from the LAN.
+      - '127.0.0.1:${REDIS_HOST_PORT:-6379}:6379'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
 
   app:
-    build: .
+    <<: *app-image
     container_name: fraud-detection-api
-    image: fraud-detection-api
-    restart: unless-stopped
+    security_opt: ['no-new-privileges:true']
+    cap_drop: ['ALL']
+    pids_limit: 512
+    tmpfs:
+      - /tmp:size=134217728,mode=1777
     ports:
-      - 8899:8899
-    env_file:
-      - .env
-    environment:
-      - DATA_TRAIN_END=10
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_DB=0
+      - '127.0.0.1:${API_HOST_PORT:-8899}:8899'
     volumes:
-      - ./app:/app/app
-      - ./logs:/app/logs
-      - ./models:/app/models
+      # Named volumes survive image/container rebuilds. `logs` and `models` (the
+      # HuggingFace cache + fine-tuned artifact) must persist. Root fs is not set
+      # read-only because model downloads write to the HF cache under models/.
+      - fraud_logs:/app/logs
+      - fraud_models:/app/models
       - shared_files:/app/shared_files
     working_dir: /app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8899 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8899
     depends_on:
       redis:
         condition: service_healthy
 
   worker:
-    build: .
+    <<: *app-image
     container_name: fraud-detection-worker
-    image: fraud-detection-api
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      - DATA_TRAIN_END=10
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_DB=0
+    security_opt: ['no-new-privileges:true']
+    cap_drop: ['ALL']
+    pids_limit: 512
+    tmpfs:
+      - /tmp:size=134217728,mode=1777
     volumes:
-      - ./app:/app/app
-      - ./logs:/app/logs
-      - ./models:/app/models
+      - fraud_logs:/app/logs
+      - fraud_models:/app/models
       - shared_files:/app/shared_files
     working_dir: /app
-    command: dramatiq app.queues.job_queue
+    command: dramatiq app.queues.job_queue --processes 1 --threads 4
     depends_on:
       redis:
         condition: service_healthy
 
 volumes:
   redis_data:
+  fraud_logs:
+  fraud_models:
   shared_files:
