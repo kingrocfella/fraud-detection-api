@@ -25,7 +25,10 @@ from app.routes import (
 # Fail fast if production is started with unset/placeholder access-control keys.
 validate_production_config()
 
-app = FastAPI(title="Nigerian Transactions Fraud Detection API", version="1.0.0")
+app = FastAPI(
+    title="Leon Frontier Nigerian Transactions Fraud Detection API",
+    version="1.0.0",
+)
 
 # Add middlewares. RequestProtectionMiddleware is added last so it is the
 # outermost layer: it caps the request body, enforces the request deadline, and
