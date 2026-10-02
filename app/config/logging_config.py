@@ -20,8 +20,14 @@ class SanitizingFormatter(logging.Formatter):
     """
 
     _PATTERNS = [
-        (re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"), "[redacted-email]"),
-        (re.compile(r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"), "[redacted-jwt]"),
+        (
+            re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
+            "[redacted-email]",
+        ),
+        (
+            re.compile(r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"),
+            "[redacted-jwt]",
+        ),
         (re.compile(r"(?i)bearer\s+[A-Za-z0-9._~+/-]+=*"), "Bearer [redacted]"),
         (re.compile(r"(?i)(key|token|password|secret)=[^&\s'\"]+"), r"\1=[redacted]"),
     ]
@@ -31,6 +37,7 @@ class SanitizingFormatter(logging.Formatter):
         for pattern, replacement in self._PATTERNS:
             message = pattern.sub(replacement, message)
         return message
+
 
 # Get log level from environment or default to INFO
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()

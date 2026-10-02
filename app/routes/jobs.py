@@ -10,7 +10,11 @@ from app.schemas import (
     JobStatusPending,
     ModelTrainingResult,
 )
-from app.security import SECURITY_KEY_HEADER, enforce_rate_limit, verify_any_security_key
+from app.security import (
+    SECURITY_KEY_HEADER,
+    enforce_rate_limit,
+    verify_any_security_key,
+)
 
 router = APIRouter()
 

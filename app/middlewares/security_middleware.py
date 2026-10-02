@@ -40,9 +40,7 @@ class RequestProtectionMiddleware:
     def _error_headers(self) -> dict[str, str]:
         headers = {key.decode(): value.decode() for key, value in SECURITY_HEADERS}
         if self.enable_hsts:
-            headers["strict-transport-security"] = (
-                "max-age=31536000; includeSubDomains"
-            )
+            headers["strict-transport-security"] = "max-age=31536000; includeSubDomains"
         return headers
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:

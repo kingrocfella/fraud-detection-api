@@ -9,10 +9,10 @@ from trl import SFTConfig, SFTTrainer
 
 from app.config import (
     LOW_CPU_MEM_USAGE,
+    MAX_SEQ_LENGTH,
     MODEL_NAME,
     TRAIN_EPOCHS,
     TRAIN_MAX_STEPS,
-    MAX_SEQ_LENGTH,
     logger,
 )
 from app.utils import generate_prompts_from_dataset
@@ -34,7 +34,7 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
             MODEL_NAME,
             device_map={"": "cpu"},
             low_cpu_mem_usage=LOW_CPU_MEM_USAGE,
-            torch_dtype=torch.float32,
+            dtype=torch.float32,
         )
         logger.info("Model loaded successfully")
 
@@ -57,6 +57,7 @@ def process_model_training_job_sync(_job_data: Dict[str, Any]) -> Dict[str, Any]
         logger.info("Dataset loaded with %d samples", len(dataset))
 
         logger.info("Tokenizing dataset (single process)...")
+
         def tokenize_func(batch):
             # Combine instruction and output for causal LM training
             texts = [
